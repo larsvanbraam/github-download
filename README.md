@@ -1,7 +1,7 @@
 # git-download
 Download a GitHub repo instead of cloning it.
 
-![Demo](http://larsvanbraam.nl/git-download.gif)
+![Demo](http://larsvanbraam.nl/git-download-demo.gif)
 
 ## Step 1
 Clone or download the repo.
