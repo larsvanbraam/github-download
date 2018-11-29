@@ -30,6 +30,7 @@ async function getDesiredBranch(branches) {
       type: 'list',
       name: 'branch',
       message: 'Which branch do you want to download?',
+      default: 'master',
       choices: branches.map(branch => branch.name),
     },
   ]);
