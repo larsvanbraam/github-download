@@ -39,7 +39,7 @@ async function getGitHubRepo() {
   return inquirer
     .prompt([
       {
-        type: 'rawlist',
+        type: 'list',
         name: 'url',
         message: 'What repo would you like to checkout?',
         choices: [
