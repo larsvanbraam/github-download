@@ -14,6 +14,7 @@ const gh = require('parse-github-url');
 const settings = require('user-settings').file('.gitDownloadRepositories');
 
 const REPOSITORIES = 'repositories';
+const CUSTOM = 'custom';
 
 function getRepositoryData(url) {
   const { owner, name } = gh(url);
@@ -54,17 +55,17 @@ async function getGitHubRepo() {
           { name: 'muban', value: 'git@github.com:mediamonks/muban.git' },
           { name: 'react-skeleton', value: 'git@github.com:larsvanbraam/react-skeleton.git' },
           ...getCustomRepositories(),
-          'custom',
+          CUSTOM,
         ],
       },
       {
-        when: response => response.url === 'custom',
+        when: response => response.url === CUSTOM,
         type: 'input',
         name: 'customUrl',
         message: 'GitHub clone url',
       },
       {
-        when: response => response.url === 'custom',
+        when: response => response.url === CUSTOM,
         type: 'confirm',
         name: 'save',
         message: 'Would you like to save the custom url?',
