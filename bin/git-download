@@ -10,15 +10,17 @@ const glob = require('glob');
 const ora = require('ora');
 const rimraf = require('rimraf');
 const ghauth = require('ghauth');
+const gh = require('parse-github-url');
 const settings = require('user-settings').file('.gitDownloadRepositories');
 
 const REPOSITORIES = 'repositories';
 
 function getRepositoryData(url) {
-  const parts = url.split(':')[1].split('/');
+  const { owner, name } = gh(url);
+
   return {
-    username: parts[0],
-    repository: parts[1].replace('.git', ''),
+    username: owner,
+    repository: name,
   };
 }
 

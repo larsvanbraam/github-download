@@ -21,6 +21,7 @@
     "node-stream-zip": "^1.7.0",
     "node-wget": "^0.4.3",
     "ora": "^3.0.0",
+    "parse-github-url": "^1.0.2",
     "rimraf": "^2.6.2",
     "user-settings": "^0.2.0"
   }
