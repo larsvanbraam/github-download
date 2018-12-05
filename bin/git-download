@@ -10,6 +10,9 @@ const glob = require('glob');
 const ora = require('ora');
 const rimraf = require('rimraf');
 const ghauth = require('ghauth');
+const settings = require('user-settings').file('.gitDownloadRepositories');
+
+const REPOSITORIES = 'repositories';
 
 function getRepositoryData(url) {
   const parts = url.split(':')[1].split('/');
@@ -48,17 +51,29 @@ async function getGitHubRepo() {
           { name: 'vue-skeleton', value: 'git@github.com:hjeti/vue-skeleton.git' },
           { name: 'muban', value: 'git@github.com:mediamonks/muban.git' },
           { name: 'react-skeleton', value: 'git@github.com:larsvanbraam/react-skeleton.git' },
+          ...getCustomRepositories(),
           'custom',
         ],
       },
       {
         when: response => response.url === 'custom',
         type: 'input',
-        name: 'url',
+        name: 'customUrl',
         message: 'GitHub clone url',
       },
+      {
+        when: response => response.url === 'custom',
+        type: 'confirm',
+        name: 'save',
+        message: 'Would you like to save the custom url?',
+      },
     ])
-    .then(answers => answers.url);
+    .then(({ url, customUrl, save }) => {
+      return {
+        url: customUrl || url,
+        save,
+      };
+    });
 }
 
 async function downloadRepository(username, repository, branch) {
@@ -129,7 +144,7 @@ async function authenticateGitHub() {
     ghauth(
       {
         configName: 'git-download',
-        note: 'App to download a GitHub repository instead of cloning it.'
+        note: 'App to download a GitHub repository instead of cloning it.',
       },
       function(error, authData) {
         if (error) reject(error);
@@ -139,12 +154,32 @@ async function authenticateGitHub() {
   });
 }
 
+function saveCustomRepository(repository) {
+  const settingRepositories = settings.get(REPOSITORIES);
+  let repositories = [];
+
+  if (settingRepositories) {
+    repositories = JSON.parse(settingRepositories);
+  }
+
+  repositories.push(repository);
+
+  settings.set(REPOSITORIES, JSON.stringify(repositories));
+}
+
+function getCustomRepositories() {
+  let repositories = settings.get(REPOSITORIES) || '[]';
+  return JSON.parse(repositories);
+}
+
 (async () => {
   const { token } = await authenticateGitHub();
-  const url = await getGitHubRepo();
+  const { url, save } = await getGitHubRepo();
   const { username, repository } = getRepositoryData(url);
   const branches = await getBranches(repository, username, token);
   const { branch } = await getDesiredBranch(branches);
+
+  if (save) saveCustomRepository(url);
 
   const spinner = ora('Downloading branch...').start();
   await downloadRepository(username, repository, branch);
@@ -153,7 +188,6 @@ async function authenticateGitHub() {
   spinner.text = 'Moving data...';
   await moveFiles(`${path.resolve()}/${branch}`, path.resolve());
   spinner.text = 'Deleting temp data...';
-  await deleteFile(branch);
   spinner.stop();
   console.log('Done.');
 })();
