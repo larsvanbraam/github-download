@@ -54,7 +54,7 @@ async function getGitHubRepo() {
           { name: 'vue-skeleton', value: 'git@github.com:hjeti/vue-skeleton.git' },
           { name: 'muban', value: 'git@github.com:mediamonks/muban.git' },
           { name: 'react-skeleton', value: 'git@github.com:larsvanbraam/react-skeleton.git' },
-          ...getCustomRepositories(),
+          ...(settings.get(REPOSITORIES) || []),
           CUSTOM,
         ],
       },
@@ -158,21 +158,11 @@ async function authenticateGitHub() {
 }
 
 function saveCustomRepository(repository) {
-  const settingRepositories = settings.get(REPOSITORIES);
-  let repositories = [];
-
-  if (settingRepositories) {
-    repositories = JSON.parse(settingRepositories);
-  }
+  const repositories = settings.get(REPOSITORIES) || [];
 
   repositories.push(repository);
 
-  settings.set(REPOSITORIES, JSON.stringify(repositories));
-}
-
-function getCustomRepositories() {
-  let repositories = settings.get(REPOSITORIES) || '[]';
-  return JSON.parse(repositories);
+  settings.set(REPOSITORIES, repositories);
 }
 
 (async () => {
