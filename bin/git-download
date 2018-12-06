@@ -146,8 +146,8 @@ async function authenticateGitHub() {
   return new Promise((resolve, reject) => {
     ghauth(
       {
-        configName: 'gitDownload',
-        note: 'App to download a GitHub repository instead of cloning it.',
+        configName: 'git-download',
+        note: 'git-download',
       },
       function(error, authData) {
         if (error) reject(error);
