@@ -14,16 +14,16 @@ cd git-download && npm-link
 ## Step 3
 Run `git download` in the folder where you want the download to happen and follow the steps.
 
-# Locations 
+### Locations 
 
-#### Custom repositories
+##### Custom repositories
 Custom repositories are stored in the user profile folder in a file called `.gitDownloadRepositories`
 
 Platform | Location
 --- | ---
 OS X | `~/.gitDownloadRepositories`
 
-#### GitHub token location
+##### GitHub token location
 
 Platform | Location
 --- | ---
