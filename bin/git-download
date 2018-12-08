@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const gitUtil = require('../src/util/git-util');
-const fileUtil = require('../src/util/file-util');
 const inquirerUtil = require('../src/util/inquirer-util');
+const fileUtil = require('../src/util/file-util');
 const settingUtil = require('../src/util/setting-util');
 const path = require('path');
 const ora = require('ora');
@@ -11,6 +11,7 @@ const spinner = ora();
 
 (async () => {
   try {
+    await fileUtil.isEmptyDirectory(path.resolve());
     const { token } = await gitUtil.getAccessToken();
     const { url, save } = await inquirerUtil.chooseRepository();
     const { username, repository } = gitUtil.parseUrl(url);
@@ -22,12 +23,6 @@ const spinner = ora();
     spinner.start();
     spinner.text = 'Downloading branch...';
     await gitUtil.downloadRepository(username, repository, branch);
-    spinner.text = 'Extracting data...';
-    await fileUtil.extractBranchZip(repository, branch);
-    spinner.text = 'Moving data...';
-    await fileUtil.moveFiles(`${path.resolve()}/${repository}`, path.resolve());
-    spinner.text = 'Deleting temp data...';
-    await fileUtil.deleteFile(gitUtil.branchToZipName(branch));
     spinner.stop();
     console.log('🎉 Done.');
   } catch (e) {

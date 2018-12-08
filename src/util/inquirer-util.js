@@ -4,6 +4,23 @@ const config = require('../config');
 
 const CUSTOM = 'custom';
 
+/**
+ * Let the user confirm if he wants to overwrite the current path
+ *
+ * @param path
+ * @returns {Promise<*>}
+ */
+async function confirmForce(path) {
+  return inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'force',
+      message: `This directory is not empty, do you still want to continue?`,
+      default: false,
+    },
+  ]);
+}
+
 async function chooseRepository() {
   return inquirer
     .prompt([
@@ -56,4 +73,4 @@ async function chooseBranch(branches) {
   ]);
 }
 
-module.exports = { chooseRepository, chooseBranch };
+module.exports = { chooseRepository, chooseBranch, confirmForce };

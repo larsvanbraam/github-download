@@ -2,17 +2,8 @@ const config = require('../config');
 const gh = require('parse-github-url');
 const fetch = require('node-fetch');
 const ghauth = require('ghauth');
-const wget = require('node-wget');
+const download = require('download-git-repo');
 
-/**
- * Convert the branch name to the output zip file
- *
- * @param branch
- * @returns {string}
- */
-function branchToZipName(branch) {
-  return `./${branch.split('/').pop()}.zip`;
-}
 
 /**
  * Parse the github url so we can retrieve the desired information
@@ -73,16 +64,11 @@ async function getAccessToken() {
  */
 async function downloadRepository(username, repository, branch) {
   return new Promise((resolve, reject) => {
-    wget(
-      {
-        url: `https://github.com/${username}/${repository}/archive/${branch}.zip`,
-        destination: `./`,
-      },
-      error => {
-        error ? reject(`Download repository: ${error}`) : resolve();
-      },
-    );
+    download(`${username}/${repository}#${branch}`, './', { clone: false }, error => {
+      if (error) reject(`Download failed: ${error}`);
+      resolve();
+    });
   });
 }
 
-module.exports = { parseUrl, branchToZipName, getBranches, getAccessToken, downloadRepository };
+module.exports = { parseUrl, getBranches, getAccessToken, downloadRepository };

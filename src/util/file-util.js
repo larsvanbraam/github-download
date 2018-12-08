@@ -1,82 +1,35 @@
-const rimraf = require('rimraf');
-const StreamZip = require('node-stream-zip');
 const fs = require('fs');
-const mv = require('mv');
-const glob = require('glob');
-const gitUtil = require('./git-util');
+const chalk = require('chalk');
+const inquirerUtil = require('../util/inquirer-util');
 
 /**
- * Delete a file/folder
+ * Check if a directory is empty, if it's not empty the user can still force it to continue.
  *
- * @param file
+ * @param path
  * @returns {Promise<*>}
  */
-async function deleteFile(file) {
+async function isEmptyDirectory(path) {
   return new Promise((resolve, reject) => {
-    rimraf(file, error => {
-      if (error) reject(`Delete file: ${error}`);
-      resolve();
-    });
-  });
-}
-
-/**
- * Extract the zip for the branch
- *
- * @param branch
- * @param repository
- * @returns {Promise<*>}
- */
-async function extractBranchZip(repository, branch) {
-  return new Promise((resolve, reject) => {
-    // Create the output directory
-    fs.mkdir(repository, error => {
-      if (error) {
-        reject(`Extract zip: ${error}`);
+    fs.readdir(path, async function(err, files) {
+      if (err) {
+        reject(`Empty directory check: ${error}`);
       } else {
-        const zip = new StreamZip({
-          file: gitUtil.branchToZipName(branch),
-          storeEntries: true,
-        });
+        if (!files.length) {
+          resolve(true);
+        } else {
+          const { force } = await inquirerUtil.confirmForce(path);
 
-        zip.on('ready', () => {
-          // Extract the zip file
-          zip.extract(
-            `${repository}-${branch.replace(/\//g, '-')}/`,
-            `./${repository}`,
-            async error => {
-              if (error) reject(`Extract zip: ${error}`);
-              zip.close();
-              resolve();
-            },
-          );
-        });
+          if (force) {
+            resolve(true);
+          } else {
+            reject(
+              `The directory where you want to download (${chalk.underline(path)}) is not empty!`,
+            );
+          }
+        }
       }
     });
   });
 }
 
-/**
- * Move files to a new destination
- *
- * @param source
- * @param destination
- * @returns {Promise<*>}
- */
-async function moveFiles(source, destination) {
-  return new Promise((resolve, reject) => {
-    glob(`${source}/**/*.*`, { dot: true }, (error, files) => {
-      if (error) reject(`Move files: ${error}`);
-      let count = 0;
-      files.forEach(file => {
-        mv(file, file.replace(source, destination), { mkdirp: true }, error => {
-          if (error) reject(`Move files: ${error}`);
-          count += 1;
-          if (count >= files.length - 1) resolve();
-        });
-      });
-    });
-  });
-}
-
-module.exports = { deleteFile, extractBranchZip, moveFiles };
+module.exports = { isEmptyDirectory };
