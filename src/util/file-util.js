@@ -14,7 +14,7 @@ const gitUtil = require('./git-util');
 async function deleteFile(file) {
   return new Promise((resolve, reject) => {
     rimraf(file, error => {
-      if (error) reject(error);
+      if (error) reject(`Delete file: ${error}`);
       resolve();
     });
   });
@@ -29,21 +29,29 @@ async function deleteFile(file) {
  */
 async function extractBranchZip(repository, branch) {
   return new Promise((resolve, reject) => {
-    const zip = new StreamZip({
-      file: gitUtil.branchToZipName(branch),
-      storeEntries: true,
-    });
+    // Create the output directory
+    fs.mkdir(repository, error => {
+      if (error) {
+        reject(`Extract zip: ${error}`);
+      } else {
+        const zip = new StreamZip({
+          file: gitUtil.branchToZipName(branch),
+          storeEntries: true,
+        });
 
-    zip.on('ready', () => {
-      // Create the output directory
-      fs.mkdirSync(repository);
-
-      // Extract the zip file
-      zip.extract(`${repository}-${branch.replace(/\//g, '-')}/`, `./${repository}`, async err => {
-        if (err) reject('Extract error');
-        zip.close();
-        resolve();
-      });
+        zip.on('ready', () => {
+          // Extract the zip file
+          zip.extract(
+            `${repository}-${branch.replace(/\//g, '-')}/`,
+            `./${repository}`,
+            async error => {
+              if (error) reject(`Extract zip: ${error}`);
+              zip.close();
+              resolve();
+            },
+          );
+        });
+      }
     });
   });
 }
@@ -58,11 +66,11 @@ async function extractBranchZip(repository, branch) {
 async function moveFiles(source, destination) {
   return new Promise((resolve, reject) => {
     glob(`${source}/**/*.*`, { dot: true }, (error, files) => {
-      if (error) reject(error);
+      if (error) reject(`Move files: ${error}`);
       let count = 0;
       files.forEach(file => {
         mv(file, file.replace(source, destination), { mkdirp: true }, error => {
-          if (error) reject(error);
+          if (error) reject(`Move files: ${error}`);
           count += 1;
           if (count >= files.length - 1) resolve();
         });

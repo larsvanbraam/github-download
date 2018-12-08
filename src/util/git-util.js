@@ -39,7 +39,9 @@ function parseUrl(url) {
 async function getBranches(repository, username, token) {
   return fetch(
     `https://api.github.com/repos/${username}/${repository}/branches?access_token=${token}`,
-  ).then(res => res.json());
+  )
+    .then(res => res.json())
+    .catch(error => Promise.reject(`Get Branches: ${error}`));
 }
 
 /**
@@ -55,7 +57,7 @@ async function getAccessToken() {
         note: config.ghauth.note,
       },
       function(error, authData) {
-        if (error) reject(error);
+        if (error) reject(`GitHub Authentication: ${error.data.message}`);
         resolve(authData);
       },
     );
@@ -77,7 +79,7 @@ async function downloadRepository(username, repository, branch) {
         destination: `./`,
       },
       error => {
-        error ? reject(error) : resolve();
+        error ? reject(`Download repository: ${error}`) : resolve();
       },
     );
   });

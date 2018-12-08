@@ -12,6 +12,7 @@
   "author": "larsvanbraam@gmail.com",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^2.4.1",
     "fstream": "^1.0.11",
     "ghauth": "^3.2.1",
     "glob": "^7.1.3",

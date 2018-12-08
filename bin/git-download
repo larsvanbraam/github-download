@@ -5,24 +5,34 @@ const inquirerUtil = require('../src/util/inquirer-util');
 const settingUtil = require('../src/util/setting-util');
 const path = require('path');
 const ora = require('ora');
+const chalk = require('chalk');
+
+const spinner = ora();
 
 (async () => {
-  const { token } = await gitUtil.getAccessToken();
-  const { url, save } = await inquirerUtil.chooseRepository();
-  const { username, repository } = gitUtil.parseUrl(url);
-  const branches = await gitUtil.getBranches(repository, username, token);
-  const { branch } = await inquirerUtil.chooseBranch(branches);
+  try {
+    const { token } = await gitUtil.getAccessToken();
+    const { url, save } = await inquirerUtil.chooseRepository();
+    const { username, repository } = gitUtil.parseUrl(url);
+    const branches = await gitUtil.getBranches(repository, username, token);
+    const { branch } = await inquirerUtil.chooseBranch(branches);
 
-  if (save) settingUtil.saveCustomRepository(url);
+    if (save) settingUtil.saveCustomRepository(url);
 
-  const spinner = ora('Downloading branch...').start();
-  await gitUtil.downloadRepository(username, repository, branch);
-  spinner.text = 'Extracting data...';
-  await fileUtil.extractBranchZip(repository, branch);
-  spinner.text = 'Moving data...';
-  await fileUtil.moveFiles(`${path.resolve()}/${repository}`, path.resolve());
-  spinner.text = 'Deleting temp data...';
-  await fileUtil.deleteFile(gitUtil.branchToZipName(branch));
-  spinner.stop();
-  console.log('Done.');
+    spinner.start();
+    spinner.text = 'Downloading branch...';
+    await gitUtil.downloadRepository(username, repository, branch);
+    spinner.text = 'Extracting data...';
+    await fileUtil.extractBranchZip(repository, branch);
+    spinner.text = 'Moving data...';
+    await fileUtil.moveFiles(`${path.resolve()}/${repository}`, path.resolve());
+    spinner.text = 'Deleting temp data...';
+    await fileUtil.deleteFile(gitUtil.branchToZipName(branch));
+    spinner.stop();
+    console.log('🎉 Done.');
+  } catch (e) {
+    spinner.stop();
+    console.log(chalk.red.bold('Error:'));
+    console.log(chalk.red(e));
+  }
 })();
