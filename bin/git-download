@@ -1,186 +1,28 @@
 #!/usr/bin/env node
-const inquirer = require('inquirer');
-const fetch = require('node-fetch');
-const fs = require('fs');
-const wget = require('node-wget');
-const StreamZip = require('node-stream-zip');
+const gitUtil = require('../src/util/git-util');
+const fileUtil = require('../src/util/file-util');
+const inquirerUtil = require('../src/util/inquirer-util');
+const settingUtil = require('../src/util/setting-util');
 const path = require('path');
-const mv = require('mv');
-const glob = require('glob');
 const ora = require('ora');
-const rimraf = require('rimraf');
-const ghauth = require('ghauth');
-const gh = require('parse-github-url');
-const settings = require('user-settings').file('.gitDownloadRepositories');
-
-const REPOSITORIES = 'repositories';
-const CUSTOM = 'custom';
-
-function getRepositoryData(url) {
-  const { owner, name } = gh(url);
-
-  return {
-    username: owner,
-    repository: name,
-  };
-}
-
-async function getBranches(repository, username, token) {
-  return fetch(
-    `https://api.github.com/repos/${username}/${repository}/branches?access_token=${token}`,
-  ).then(res => res.json());
-}
-
-async function getDesiredBranch(branches) {
-  return inquirer.prompt([
-    {
-      type: 'list',
-      name: 'branch',
-      message: 'Which branch do you want to download?',
-      default: 'master',
-      choices: branches.map(branch => branch.name),
-    },
-  ]);
-}
-
-async function getGitHubRepo() {
-  return inquirer
-    .prompt([
-      {
-        type: 'list',
-        name: 'url',
-        message: 'What repo would you like to checkout?',
-        choices: [
-          { name: 'vue-skeleton', value: 'git@github.com:hjeti/vue-skeleton.git' },
-          { name: 'muban', value: 'git@github.com:mediamonks/muban.git' },
-          { name: 'react-skeleton', value: 'git@github.com:larsvanbraam/react-skeleton.git' },
-          ...(settings.get(REPOSITORIES) || []),
-          CUSTOM,
-        ],
-      },
-      {
-        when: response => response.url === CUSTOM,
-        type: 'input',
-        name: 'customUrl',
-        message: 'GitHub clone url',
-      },
-      {
-        when: response => response.url === CUSTOM,
-        type: 'confirm',
-        name: 'save',
-        message: 'Would you like to save the custom url?',
-      },
-    ])
-    .then(({ url, customUrl, save }) => {
-      return {
-        url: customUrl || url,
-        save,
-      };
-    });
-}
-
-async function downloadRepository(username, repository, branch) {
-  return new Promise((resolve, reject) => {
-    wget(
-      {
-        url: `https://github.com/${username}/${repository}/archive/${branch}.zip`,
-        destination: `./`,
-      },
-      error => {
-        error ? reject(error) : resolve();
-      },
-    );
-  });
-}
-
-async function deleteFile(file) {
-  return new Promise((resolve, reject) => {
-    rimraf(file, error => {
-      if (error) reject(error);
-      resolve();
-    });
-  });
-}
-
-async function moveFiles(source, destination) {
-  return new Promise((resolve, reject) => {
-    glob(`${source}/**/*.*`, { dot: true }, (error, files) => {
-      if (error) reject(error);
-      let count = 0;
-      files.forEach(file => {
-        mv(file, file.replace(source, destination), { mkdirp: true }, error => {
-          if (error) reject(error);
-          count += 1;
-          if (count >= files.length - 1) resolve();
-        });
-      });
-    });
-  });
-}
-
-async function extractZip(repository, branch) {
-  return new Promise((resolve, reject) => {
-    const file = `./${branch}.zip`;
-    const zip = new StreamZip({
-      file,
-      storeEntries: true,
-    });
-
-    zip.on('ready', () => {
-      // Create the output directory
-      fs.mkdirSync(branch);
-
-      // Extract the zip file
-      zip.extract(`${repository}-${branch}/`, `./${branch}`, async err => {
-        if (err) reject('Extract error');
-        zip.close();
-        // Delete the extracted zip file
-        await deleteFile(file);
-        resolve();
-      });
-    });
-  });
-}
-
-async function authenticateGitHub() {
-  return new Promise((resolve, reject) => {
-    ghauth(
-      {
-        configName: 'git-download',
-        note: 'git-download',
-      },
-      function(error, authData) {
-        if (error) reject(error);
-        resolve(authData);
-      },
-    );
-  });
-}
-
-function saveCustomRepository(repository) {
-  const repositories = settings.get(REPOSITORIES) || [];
-
-  repositories.push(repository);
-
-  settings.set(REPOSITORIES, repositories);
-}
 
 (async () => {
-  const { token } = await authenticateGitHub();
-  const { url, save } = await getGitHubRepo();
-  const { username, repository } = getRepositoryData(url);
-  const branches = await getBranches(repository, username, token);
-  const { branch } = await getDesiredBranch(branches);
+  const { token } = await gitUtil.getAccessToken();
+  const { url, save } = await inquirerUtil.chooseRepository();
+  const { username, repository } = gitUtil.parseUrl(url);
+  const branches = await gitUtil.getBranches(repository, username, token);
+  const { branch } = await inquirerUtil.chooseBranch(branches);
 
-  if (save) saveCustomRepository(url);
+  if (save) settingUtil.saveCustomRepository(url);
 
   const spinner = ora('Downloading branch...').start();
-  await downloadRepository(username, repository, branch);
+  await gitUtil.downloadRepository(username, repository, branch);
   spinner.text = 'Extracting data...';
-  await extractZip(repository, branch);
+  await fileUtil.extractBranchZip(repository, branch);
   spinner.text = 'Moving data...';
-  await moveFiles(`${path.resolve()}/${branch}`, path.resolve());
+  await fileUtil.moveFiles(`${path.resolve()}/${repository}`, path.resolve());
   spinner.text = 'Deleting temp data...';
+  await fileUtil.deleteFile(gitUtil.branchToZipName(branch));
   spinner.stop();
   console.log('Done.');
 })();
