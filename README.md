@@ -8,7 +8,7 @@ Clone or download the repo.
 
 ## Step 2
 ```bash
-cd git-download && npm-link
+cd github-download && yarn && npm-link
 ```
 
 ## Step 3
