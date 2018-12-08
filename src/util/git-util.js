@@ -3,20 +3,30 @@ const gh = require('parse-github-url');
 const fetch = require('node-fetch');
 const ghauth = require('ghauth');
 const download = require('download-git-repo');
-
+const chalk = require('chalk');
 
 /**
  * Parse the github url so we can retrieve the desired information
  * @param url
  * @returns {{username, repository}}
  */
-function parseUrl(url) {
-  const { owner, name } = gh(url);
+async function parseUrl(url) {
+  return new Promise((resolve, reject) => {
+    const { owner, name } = gh(url);
 
-  return {
-    username: owner,
-    repository: name,
-  };
+    if (!owner && !name) {
+      reject(
+        `Parse url: Unable to get the ${chalk.underline('username')} and ${chalk.underline(
+          'repository',
+        )} from the url.`,
+      );
+    } else {
+      resolve({
+        username: owner,
+        repository: name,
+      });
+    }
+  });
 }
 
 /**

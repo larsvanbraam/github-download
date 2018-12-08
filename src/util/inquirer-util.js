@@ -45,6 +45,7 @@ async function chooseRepository() {
         type: 'confirm',
         name: 'save',
         message: 'Would you like to save the custom url?',
+        default: false,
       },
     ])
     .then(({ url, customUrl, save }) => {

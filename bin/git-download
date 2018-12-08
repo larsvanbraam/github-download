@@ -14,7 +14,7 @@ const spinner = ora();
     await fileUtil.isEmptyDirectory(path.resolve());
     const { token } = await gitUtil.getAccessToken();
     const { url, save } = await inquirerUtil.chooseRepository();
-    const { username, repository } = gitUtil.parseUrl(url);
+    const { username, repository } = await gitUtil.parseUrl(url);
     const branches = await gitUtil.getBranches(repository, username, token);
     const { branch } = await inquirerUtil.chooseBranch(branches);
 
