@@ -10,7 +10,7 @@ module.exports = {
     },
     {
       name: 'react-skeleton',
-      value: 'https://github.com/larsvanbraam/react-skeleton',
+      value: 'https://github.com/hjeti/react-skeleton',
     },
   ],
   ghauth: {
