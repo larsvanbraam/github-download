@@ -3,27 +3,27 @@ Download a GitHub repo instead of cloning it.
 
 ![Demo](http://larsvanbraam.nl/git-download-demo.gif)
 
-## Step 1
-Clone or download the repo.
-
-## Step 2
+## Installation
 ```bash
-cd github-download && yarn && npm-link
+$ npm i -g https://github.com/larsvanbraam/github-download.git
 ```
 
-## Step 3
-Run `git download` in the folder where you want the download to happen and follow the steps.
+## Usage
+Run the following in the folder where you want the download to happen and follow the steps.
+```bash
+$ git download
+```
 
-### Locations 
+## Locations 
 
-##### Custom repositories
+#### Custom repositories
 Custom repositories are stored in the user profile folder in a file called `.gitDownloadRepositories`
 
 Platform | Location
 --- | ---
 OS X | `~/.gitDownloadRepositories`
 
-##### GitHub token location
+#### GitHub token location
 
 Platform | Location
 --- | ---
