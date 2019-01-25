@@ -1,4 +1,4 @@
-# git-download
+# github-download
 Download a GitHub repo instead of cloning it.
 
 ![Demo](http://larsvanbraam.nl/git-download-demo.gif)
