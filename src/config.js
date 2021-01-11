@@ -14,6 +14,7 @@ module.exports = {
     },
   ],
   ghauth: {
+    clientId: 'f024846c60a6f8c2dabd',
     configName: 'git-download',
     note: 'git-download',
   },

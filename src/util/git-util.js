@@ -54,6 +54,7 @@ async function getAccessToken() {
   return new Promise((resolve, reject) => {
     ghauth(
       {
+        clientId: config.ghauth.clientId,
         configName: config.ghauth.configName,
         note: config.ghauth.note,
       },
