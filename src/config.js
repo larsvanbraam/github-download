@@ -6,12 +6,12 @@ module.exports = {
     },
     {
       name: 'muban',
-      value: 'https://github.com/mediamonks/muban',
+      value: 'https://github.com/mubanjs/muban-skeleton',
     },
     {
-      name: 'react-skeleton',
-      value: 'https://github.com/hjeti/react-skeleton',
-    },
+      name: 'muban (legacy)',
+      value: 'https://github.com/mediamonks/muban',
+    }
   ],
   ghauth: {
     clientId: 'f024846c60a6f8c2dabd',
