@@ -11,22 +11,22 @@ const chalk = require('chalk');
  * @returns {{username, repository}}
  */
 async function parseUrl(url) {
-  return new Promise((resolve, reject) => {
-    const { owner, name } = gh(url);
+    return new Promise((resolve, reject) => {
+        const { owner, name } = gh(url);
 
-    if (!owner && !name) {
-      reject(
-        `Parse url: Unable to get the ${chalk.underline('username')} and ${chalk.underline(
-          'repository',
-        )} from the url.`,
-      );
-    } else {
-      resolve({
-        username: owner,
-        repository: name,
-      });
-    }
-  });
+        if (!owner && !name) {
+            reject(
+                `Parse url: Unable to get the ${chalk.underline('username')} and ${chalk.underline(
+                    'repository',
+                )} from the url.`,
+            );
+        } else {
+            resolve({
+                username: owner,
+                repository: name,
+            });
+        }
+    });
 }
 
 /**
@@ -38,11 +38,16 @@ async function parseUrl(url) {
  * @returns {Promise<*>}
  */
 async function getBranches(repository, username, token) {
-  return fetch(
-    `https://api.github.com/repos/${username}/${repository}/branches?access_token=${token}`,
-  )
-    .then(res => res.json())
-    .catch(error => Promise.reject(`Get Branches: ${error}`));
+    return fetch(
+        `https://api.github.com/repos/${username}/${repository}/branches`,
+        {
+            headers: {
+                'Authorization': 'Bearer ' + token,
+            }
+        },
+    )
+        .then(res => res.json())
+        .catch(error => Promise.reject(`Get Branches: ${error}`));
 }
 
 /**
@@ -51,19 +56,19 @@ async function getBranches(repository, username, token) {
  * @returns {Promise<*>}
  */
 async function getAccessToken() {
-  return new Promise((resolve, reject) => {
-    ghauth(
-      {
-        clientId: config.ghauth.clientId,
-        configName: config.ghauth.configName,
-        note: config.ghauth.note,
-      },
-      function(error, authData) {
-        if (error) reject(`GitHub Authentication: ${error.data.message}`);
-        resolve(authData);
-      },
-    );
-  });
+    return new Promise((resolve, reject) => {
+        ghauth(
+            {
+                clientId: config.ghauth.clientId,
+                configName: config.ghauth.configName,
+                note: config.ghauth.note,
+            },
+            function (error, authData) {
+                if (error) reject(`GitHub Authentication: ${error.data.message}`);
+                resolve(authData);
+            },
+        );
+    });
 }
 
 /**
@@ -74,12 +79,12 @@ async function getAccessToken() {
  * @returns {Promise<*>}
  */
 async function downloadRepository(username, repository, branch) {
-  return new Promise((resolve, reject) => {
-    download(`${username}/${repository}#${branch}`, './', { clone: false }, error => {
-      if (error) reject(`Download failed: ${error}`);
-      resolve();
+    return new Promise((resolve, reject) => {
+        download(`${username}/${repository}#${branch}`, './', { clone: false }, error => {
+            if (error) reject(`Download failed: ${error}`);
+            resolve();
+        });
     });
-  });
 }
 
 module.exports = { parseUrl, getBranches, getAccessToken, downloadRepository };
