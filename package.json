@@ -16,7 +16,7 @@
     "download-git-repo": "^3.0.2",
     "ghauth": "^5.0.0",
     "inquirer": "^7.3.3",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.1.1",
     "ora": "^5.2.0",
     "parse-github-url": "^1.0.2",
     "user-settings": "^0.2.0"
